@@ -7,9 +7,41 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import React from "react";
+import React, { useEffect } from "react";
 import colors from "../../data/styling/colors";
+import { useMutation } from "@tanstack/react-query";
+import { register } from "../../api/auth";
+import { useNavigation } from "@react-navigation/native";
+import { useState } from "react";
+import * as ImagePicker from "expo-image-picker";
+import UserInfo from "@/types/UserInfo";
+
 const Register = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [profileImage, setProfileImage] = useState("");
+  const navigation = useNavigation();
+  
+  const {mutate, isPending} = useMutation({
+    mutationKey: ["register"],
+    mutationFn: (userInfo: UserInfo) => register(userInfo, profileImage),
+    onSuccess: () => {
+      navigation.navigate("/(tabs)/(home)/index" as never);
+    },
+    onError: (error) => {
+      console.log(error);
+    },
+  })
+
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+    });
+    if (!result.canceled) {
+      setProfileImage(result.assets[0].uri);
+    }
+  };
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -40,6 +72,8 @@ const Register = () => {
           </Text>
 
           <TextInput
+            value={email}
+            onChangeText={setEmail}
             style={{
               backgroundColor: colors.white,
               padding: 10,
@@ -47,9 +81,25 @@ const Register = () => {
               marginTop: 20,
             }}
             placeholder="Email"
+            keyboardType="email-address"
+            autoCapitalize="none"
           />
 
           <TextInput
+            value={name}
+            onChangeText={setName}
+            style={{
+              backgroundColor: colors.white,
+              padding: 10,
+              borderRadius: 5,
+              marginTop: 20,
+            }}
+            placeholder="Name"
+          />
+
+          <TextInput
+            value={password}
+            onChangeText={setPassword}
             style={{
               backgroundColor: colors.white,
               padding: 10,
@@ -59,13 +109,13 @@ const Register = () => {
             placeholder="Password"
           />
 
-          <TouchableOpacity style={{ marginTop: 20 }}>
+          <TouchableOpacity style={{ marginTop: 20 }} onPress={pickImage}>
             <Text style={{ color: colors.white, fontSize: 16 }}>
               Upload Profile Image
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
+          <TouchableOpacity onPress={() => mutate({ email, password, name, profileImage })}
             style={{
               backgroundColor: colors.white,
               padding: 10,

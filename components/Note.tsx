@@ -69,8 +69,8 @@ const Note = ({ note }: { note: NoteType }) => {
                 padding: 12,
                 borderRadius: 10,
                 marginBottom: 5,
-              }}
-            >
+              }} key={topic}
+              >
               <Text>{topic}</Text>
             </View>
           ))}
